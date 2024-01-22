@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./databases/dev.db"
+}
+
+// Users table
+model Users {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  name            String?
+  first_name      String?
+  last_name       String?
+  posts           Posts[]
+  logins          Logins[]
+  user_has_roles  UserHasRoles[]
+  comments         Comments[]
+}
+
+model Logins {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id        Int       @id @default(autoincrement())
+  user      Users     @relation(fields: [user_id], references: [id])
+  user_id   Int
+  password  String
+  login     String 
+  tokens    Tokens[]
+}
+
+model Tokens {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id          Int         @id @default(autoincrement())
+  token       String    
+  expires_on  DateTime
+  login       Logins      @relation( fields: [login_id], references: [id] )
+  login_id    Int
+}
+
+// Posts table
+model Posts {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  author    Users   @relation(fields: [author_id], references: [id])
+  author_id Int
+  comments  Comments[]
+}
+
+/// Categories
+model Categories {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id          Int         @id @default(autoincrement())
+  comment     String 
+  parent_id   Int?        @unique
+  successor   Categories?   @relation("RelatedCaegories", fields: [parent_id], references: [id])
+  predecessor Categories?   @relation("RelatedCaegories")
+}
+
+
+/// Roles
+model Roles {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id            Int       @id @default(autoincrement())
+  role          String
+  description   String
+  user_has_roles  UserHasRoles[]
+}
+
+/// Users->Roles
+model UserHasRoles {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id          Int       @id @default(autoincrement())
+  role        Roles     @relation( fields: [role_id], references: [id] )
+  role_id     Int
+  user        Users     @relation( fields: [user_id], references: [id] )
+  user_id     Int
+}
+
+/// Commens
+model Comments {
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) 
+  id          Int         @id @default(autoincrement())
+  comment     String 
+  parent_id   Int?        @unique
+  successor   Comments?   @relation("RelatedComments", fields: [parent_id], references: [id])
+  predecessor Comments?   @relation("RelatedComments")
+  user_id     Int
+  user        Users       @relation( fields: [user_id], references: [id])
+  post_id     Int
+  post        Posts       @relation(fields: [post_id], references: [id])
+}
